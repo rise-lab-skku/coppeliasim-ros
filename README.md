@@ -1,45 +1,66 @@
 # CoppeliaSim ROS Interface
+
 ![Python](https://img.shields.io/badge/Python-2.7-blue)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-18.04-green)
-![ROS](https://img.shields.io/badge/ROS-melodic-yellow)
+![ROS](https://img.shields.io/badge/ROS-melodic-orange)
 ![CoppeliaSim](https://img.shields.io/badge/CoppeliaSim-4.2.0-red)
 
-# 1. Overview
+## 1. Overview
+
 Here we offer ROS-CoppeliaSim interface modules for the manipulators, the grippers, the vision sensors, etc. Whole packages are based on [B0-based remote API](https://www.coppeliarobotics.com/helpFiles/en/b0RemoteApiOverview.htm) and run with [synchronous](https://www.coppeliarobotics.com/helpFiles/en/b0RemoteApiModusOperandi.htm) mode.
+
 <!-- [Instructions on how to enable the B0-based remote API on the client side are given here](https://www.coppeliarobotics.com/helpFiles/en/b0RemoteApiClientSide.htm). -->
 
-# 2. Requirements
-Install [MessagePack](https://msgpack.org/index.html) for Python2.
-```bash
-pip2 install msgpack
-```
+## 2. Requirements
 
-# 3. Activate B0 Remote API Server
-## 3.1 Load
+1. Download CoppeliaSim on [here](https://www.coppeliarobotics.com/). You must download `4.2.0` version for `Ubuntu 18.04`
+
+   - Add the following line to the end of the `usrset.txt` file.
+     ```
+     allowOldEduRelease = 7775
+     ```
+
+2. Install [MessagePack](https://msgpack.org/index.html) for Python2.
+   ```bash
+   pip2 install msgpack
+   ```
+
+## 3. Activate B0 Remote API Server
+
+### 3.1 Load
+
 Drag and drop `B0 Remote API Server.ttm` on the scene. The module can be found on `[Model browser]-[tools]`. If `B0 Remote API Server.ttm` is successfuly loaded, `b0RemoteApiServer` object will show on the `Secene hierarachy`.
-## 3.2 Channel name
+
+### 3.2 Channel name
+
 Channel name should be set as `b0RemoteApi`.
 
-# 4. CoppeliaSim master
+## 4. CoppeliaSim master
+
 Only [coppeliasim master](./coppleiasim_master) node may send a [SynchronousTrigger](https://www.coppeliarobotics.com/helpFiles/en/b0RemoteApi-python.htm#simxSynchronousTrigger) signal and [base modules](./coppleiasim_base) must not send the trigger signal by themselves. You **must** have a `coppeliasim master` node running in order for `base modules` to run other modules synchronously.
-## 4.1 Usage
+
+### 4.1 Usage
+
 The `coppeliasim master` can be launched using the roslaunch.
 
 ```bash
 roslaunch coppeliasim_master coppeliasim_master.launch
 ```
+
 > Note: `coppeliasim master` must be launched **only once**.
 
-## 4.2 Asynchronous operation
+### 4.2 Asynchronous operation
+
 Clients do not need to signal anything to master node. Master node should still be run to trigger coppelia simulatior.
-## 4.3 Synchronous operation
-For a client to run in synchronous mode it most subscribe to rostopic: *"/coppeliasim_synchronous"*. On that topic, triggers from master node will be posted. When the client node finishes its calculations for one step, it has to signal that to [coppeliasim master] over "/coppeliasim_synchronous" topic. \\
+
+### 4.3 Synchronous operation
+
+For a client to run in synchronous mode it most subscribe to rostopic: _"/coppeliasim_synchronous"_. On that topic, triggers from master node will be posted. When the client node finishes its calculations for one step, it has to signal that to [coppeliasim master] over "/coppeliasim_synchronous" topic. \\
 
 Below is an example class code of a client running in synchronous mode.
 
-
 ```python
-import rospy 
+import rospy
 
 from coppeliasim_remote_api.bluezero import b0RemoteApi
 from coppeliasim_master.msg import CoppeliaSimSynchronous
@@ -70,11 +91,11 @@ class SynchronousClient(object):
 
     def coppeliasim_synchronous_cb(self, msg):
         """
-        Callback for synchronous operation. If message is received from "coppeliasim_master", 
+        Callback for synchronous operation. If message is received from "coppeliasim_master",
         "self.do_next_step" is set to True
         and "self.sequence_number" is updated.
         --------------
-        msg : CoppeliaSimSynchronous 
+        msg : CoppeliaSimSynchronous
             ros message containing a time stamp,  sequence_number and client_ID
 
         Returns
@@ -89,7 +110,7 @@ class SynchronousClient(object):
         else:
             return False
 
-        
+
     def coppeliasim_synchronous_done(self):
         """
         Call this function when the client has finished doing all the calculations.
@@ -103,7 +124,7 @@ class SynchronousClient(object):
         """
 
         if not hasattr(self, "sequence_number"):
-            return 
+            return
         # Publish the trigger to all other synchronous clients
         trigger_msg = CoppeliaSimSynchronous()
         trigger_msg.stamp = rospy.Time.now()
@@ -112,11 +133,11 @@ class SynchronousClient(object):
         self.coppeliasim_synchronous_trigger_pub.publish(trigger_msg)
         return
 
-    self.sim_step_done_cb(self):
+    def sim_step_done_cb(self):
         # -------------------------------------------------------------------------------------
         # ---------------- PUT HERE CODE TO RUN EACH SIM STEP ---------------------------------
+        pass
         # -------------------------------------------------------------------------------------
-
 
 
     def step_simulation(self):
@@ -138,9 +159,9 @@ class SynchronousClient(object):
 
         # -------------------------------------------------------------------------------------
         # ---- Function that gets called each simulation step ---------------------------------
-        self.sim_step_done_cb() 
+        self.sim_step_done_cb()
         # -------------------------------------------------------------------------------------
-    
+
         self.do_next_step = False
         self.coppeliasim_synchronous_done()
 
@@ -157,11 +178,14 @@ if __name__ == '__main__':
 
     sim = synchronousClient(client, client_ID)
 
-    print("synchronousClient Start")  
+    print("synchronousClient Start")
 
     while not rospy.is_shutdown():
         sim.step_simulation()
 ```
-# Contributors
-* [Sungwon Seo](https://github.com/ssw0536)
-* [Jure Hudoklin](https://github.com/JureHudoklin)
+
+## Contributors
+
+- [Sungwon Seo](https://github.com/ssw0536)
+- [Jure Hudoklin](https://github.com/JureHudoklin)
+- [Hong-ryul Jung](https://github.com/ryul1206)
