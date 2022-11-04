@@ -162,4 +162,6 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
         sim.step_simulation()
 ```
-
+# Contibutors
+* [Sungwon Seo](https://github.com/ssw0536)
+* [Jure Hudoklin](https://github.com/JureHudoklin)
