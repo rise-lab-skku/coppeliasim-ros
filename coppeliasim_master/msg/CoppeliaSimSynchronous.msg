@@ -1,0 +1,3 @@
+string client_ID
+time stamp
+int64 sequence_number

@@ -1,0 +1,3 @@
+<launch>
+  <node name="coppeliasim_master" pkg="coppeliasim_master" type="coppeliasim_master_node.py" output="screen" />
+</launch>

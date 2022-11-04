@@ -1,0 +1,7 @@
+<launch>
+  <!-- Run depth camera coppeliasim ros interface -->
+  <node pkg="coppeliasim_vision_driver" type="ros_vision_driver.py" name="depth_camera" output="screen">
+    <param name="vision_sensor_mode" type="str" value="depth"/>
+    <param name="vision_sensor_object_name" type="str" value="depth_camera"/>
+  </node>
+</launch>

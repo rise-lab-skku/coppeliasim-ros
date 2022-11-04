@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="coppeliasim_robotiq_epick_gripper_driver" type="ros_robotiq_epick_gripper_driver.py" name="robotiq_epick_gripper" output="screen"/>
+</launch>

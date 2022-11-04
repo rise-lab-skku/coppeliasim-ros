@@ -1,0 +1,7 @@
+<launch>
+  <!-- Run rgb camera coppeliasim ros interface -->
+  <node pkg="coppeliasim_vision_driver" type="ros_vision_driver.py" name="rgb_camera" output="screen">
+    <param name="vision_sensor_mode" type="str" value="color"/>
+    <param name="vision_sensor_object_name" type="str" value="color_camera"/>
+  </node>
+</launch>
