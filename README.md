@@ -1,8 +1,8 @@
 # CoppeliaSim ROS Interface
 
-![Python](https://img.shields.io/badge/Python-2.7-blue)
-![Ubuntu](https://img.shields.io/badge/Ubuntu-18.04-green)
-![ROS](https://img.shields.io/badge/ROS-melodic-orange)
+![Python](https://img.shields.io/badge/Python-3.8-blue)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-20.04-green)
+![ROS](https://img.shields.io/badge/ROS-noetic-orange)
 ![CoppeliaSim](https://img.shields.io/badge/CoppeliaSim-4.2.0-red)
 
 ## 1. Overview
@@ -13,16 +13,16 @@ Here we offer ROS-CoppeliaSim interface modules for the manipulators, the grippe
 
 ## 2. Requirements
 
-1. Download CoppeliaSim on [here](https://www.coppeliarobotics.com/). You must download `4.2.0` version for `Ubuntu 18.04`
+1. Download CoppeliaSim on [here](https://www.coppeliarobotics.com/). You must download `4.2.0` version for `Ubuntu 20.04`
 
    - Add the following line to the end of the `usrset.txt` file.
      ```
      allowOldEduRelease = 7775
      ```
 
-2. Install [MessagePack](https://msgpack.org/index.html) for Python2.
+2. Install [MessagePack](https://msgpack.org/index.html) for Python3.
    ```bash
-   pip2 install msgpack
+   pip3 install msgpack
    ```
 
 ## 3. Activate B0 Remote API Server

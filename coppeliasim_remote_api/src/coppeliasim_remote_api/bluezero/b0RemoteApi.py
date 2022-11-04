@@ -3,6 +3,11 @@
 # and the server counterpart to lua/b0RemoteApiServer.lua
 # -------------------------------------------------------
 
+# add curret file as path
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import b0
 import msgpack
 import random
@@ -35,10 +40,10 @@ class RemoteApiClient:
         self._allSubscribers={}
         self._allDedicatedPublishers={}
         self._setupSubscribersAsynchronously=setupSubscribersAsynchronously
-  
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self,*err):
         print('*************************************************************************************')
         print('** Leaving... if this is unexpected, you might have to adjust the timeout argument **')
@@ -54,10 +59,10 @@ class RemoteApiClient:
         for key, value in self._allDedicatedPublishers.items():
             value.cleanup()
         self._node.cleanup()
-        
+
     def _pingCallback(self,msg):
         self._pongReceived=True
-        
+
     def _handleReceivedMessage(self,msg):
         msg=msgpack.unpackb(msg,raw=True)
         msg[0]=msg[0].decode('ascii')
@@ -66,7 +71,7 @@ class RemoteApiClient:
             if len(cbMsg)==1:
                 cbMsg.append(None)
             self._allSubscribers[msg[0]]['cb'](cbMsg)
-            
+
     def _handleFunction(self,funcName,reqArgs,topic):
         if topic==self._serviceCallTopic:
             packedData=msgpack.packb([[funcName,self._clientId,topic,0],reqArgs])
@@ -95,7 +100,7 @@ class RemoteApiClient:
             self._allDedicatedPublishers[topic].publish(packedData)
         else:
             print('B0 Remote API error: invalid topic')
-        
+
     def simxDefaultPublisher(self):
         return self._defaultPublisherTopic
 
@@ -120,7 +125,7 @@ class RemoteApiClient:
             channel=self._defaultPublisherTopic
         self._handleFunction('setDefaultPublisherPubInterval',[topic,publishInterval],channel)
         return topic
-        
+
     def simxCreateSubscriber(self,cb,publishInterval=1,dropMessages=False):
         topic=self._channelName+'Pub'+str(self._nextDedicatedSubscriberHandle)+self._clientId
         self._nextDedicatedSubscriberHandle=self._nextDedicatedSubscriberHandle+1
@@ -139,7 +144,7 @@ class RemoteApiClient:
             channel=self._defaultPublisherTopic
         self._handleFunction('createPublisher',[topic,publishInterval],channel)
         return topic
-  
+
     def simxRemoveSubscriber(self,topic):
         if topic in self._allSubscribers:
             value=self._allSubscribers[topic]
@@ -159,14 +164,14 @@ class RemoteApiClient:
             value.cleanup()
             self._handleFunction('stopSubscriber',[topic],self._serviceCallTopic)
             del self._allDedicatedPublishers[topic]
-        
+
     def simxServiceCall(self):
         return self._serviceCallTopic
-        
+
     def simxSpin(self):
         while True:
             self.simxSpinOnce()
-        
+
     def simxSpinOnce(self):
         defaultSubscriberAlreadyProcessed=False
         for key, value in self._allSubscribers.items():
@@ -179,23 +184,23 @@ class RemoteApiClient:
                         self._handleReceivedMessage(readData)
                 if value['dropMessages'] and (readData is not None):
                     self._handleReceivedMessage(readData)
-                    
+
     def simxGetTimeInMs(self):
-        return self._node.hardware_time_usec()/1000;    
+        return self._node.hardware_time_usec()/1000;
 
     def simxSleep(self,durationInMs):
         time.sleep(durationInMs)
-        
+
     def simxSynchronous(self,enable):
         reqArgs = [enable]
         funcName = 'Synchronous'
         self._handleFunction(funcName,reqArgs,self._serviceCallTopic)
-        
+
     def simxSynchronousTrigger(self):
         reqArgs = [0]
         funcName = 'SynchronousTrigger'
         self._handleFunction(funcName,reqArgs,self._defaultPublisherTopic)
-        
+
     def simxGetSimulationStepDone(self,topic):
         if topic in self._allSubscribers:
             reqArgs = [0]
@@ -203,7 +208,7 @@ class RemoteApiClient:
             self._handleFunction(funcName,reqArgs,topic)
         else:
             print('B0 Remote API error: invalid topic')
-        
+
     def simxGetSimulationStepStarted(self,topic):
         if topic in self._allSubscribers:
             reqArgs = [0]
@@ -211,7 +216,7 @@ class RemoteApiClient:
             self._handleFunction(funcName,reqArgs,topic)
         else:
             print('B0 Remote API error: invalid topic')
-    
+
     def simxCallScriptFunction(self,funcAtObjName,scriptType,arg,topic):
         packedArg=msgpack.packb(arg)
         reqArgs = [funcAtObjName,scriptType,packedArg]
@@ -267,9 +272,18 @@ class RemoteApiClient:
     def simxSetObjectStringParameter(self,objectHandle,parameterID,parameter,topic):
         reqArgs = [objectHandle,parameterID,parameter]
         return self._handleFunction('SetObjectStringParam',reqArgs,topic)
+    def simxClearIntegerSignal(self,sigName,topic):
+        reqArgs = [sigName]
+        return self._handleFunction('ClearInt32Signal',reqArgs,topic)
+    def simxSetIntSignal(self,sigName,sigValue,topic):
+        reqArgs = [sigName,sigValue]
+        return self._handleFunction('SetInt32Signal',reqArgs,topic)
+    def simxGetIntSignal(self,sigName,topic):
+        reqArgs = [sigName]
+        return self._handleFunction('GetInt32Signal',reqArgs,topic)
     #-- DEPRECATED END
 
-        
+
     def simxGetObjectHandle(self,objectName,topic):
         reqArgs = [objectName]
         return self._handleFunction('GetObjectHandle',reqArgs,topic)
@@ -309,27 +323,27 @@ class RemoteApiClient:
     def simxClearFloatSignal(self,sigName,topic):
         reqArgs = [sigName]
         return self._handleFunction('ClearFloatSignal',reqArgs,topic)
-    def simxClearIntegerSignal(self,sigName,topic):
+    def simxClearInt32Signal(self,sigName,topic):
         reqArgs = [sigName]
-        return self._handleFunction('ClearIntegerSignal',reqArgs,topic)
+        return self._handleFunction('ClearInt32Signal',reqArgs,topic)
     def simxClearStringSignal(self,sigName,topic):
         reqArgs = [sigName]
         return self._handleFunction('ClearStringSignal',reqArgs,topic)
     def simxSetFloatSignal(self,sigName,sigValue,topic):
         reqArgs = [sigName,sigValue]
         return self._handleFunction('SetFloatSignal',reqArgs,topic)
-    def simxSetIntSignal(self,sigName,sigValue,topic):
+    def simxSetInt32Signal(self,sigName,sigValue,topic):
         reqArgs = [sigName,sigValue]
-        return self._handleFunction('SetIntSignal',reqArgs,topic)
+        return self._handleFunction('SetInt32Signal',reqArgs,topic)
     def simxSetStringSignal(self,sigName,sigValue,topic):
         reqArgs = [sigName,sigValue]
         return self._handleFunction('SetStringSignal',reqArgs,topic)
     def simxGetFloatSignal(self,sigName,topic):
         reqArgs = [sigName]
         return self._handleFunction('GetFloatSignal',reqArgs,topic)
-    def simxGetIntSignal(self,sigName,topic):
+    def simxGetInt32Signal(self,sigName,topic):
         reqArgs = [sigName]
-        return self._handleFunction('GetIntSignal',reqArgs,topic)
+        return self._handleFunction('GetInt32Signal',reqArgs,topic)
     def simxGetStringSignal(self,sigName,topic):
         reqArgs = [sigName]
         return self._handleFunction('GetStringSignal',reqArgs,topic)
